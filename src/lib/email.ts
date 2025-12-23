@@ -1,10 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-
-// Email service using Supabase Auth SMTP (send magic link/email via Supabase)
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // Use service role for server-side email
-);
+import nodemailer from 'nodemailer';
 
 export async function sendEmail({
   to,
@@ -19,14 +13,24 @@ export async function sendEmail({
   html?: string;
   attachments?: any[];
 }) {
-  // Supabase does not have a direct transactional email API, but you can use the 'inviteUserByEmail' or 'resetPasswordForEmail' as a workaround,
-  // or use an Edge Function or external integration for custom emails.
-  // Here, we use the 'inviteUserByEmail' as a placeholder for demo purposes.
-  const { data, error } = await supabase.auth.admin.inviteUserByEmail(to, {
-    redirectTo: process.env.EMAIL_REDIRECT_URL || undefined,
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
   });
-  if (error) throw error;
-  return data;
+
+  return transporter.sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to,
+    subject,
+    text,
+    html,
+    attachments,
+  });
 }
 
 export async function sendTestEmail(to: string) {

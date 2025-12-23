@@ -8,6 +8,7 @@ const navLinks = [
   { href: "/upload", label: "Upload PDFs" },
   { href: "/files", label: "Uploaded Files" },
   { href: "/queue", label: "Email Queue" },
+  { href: "/birthdays", label: "Student Birthdays" }, // Added birthdays page
   { href: "/history/sent", label: "Sent History" },
   { href: "/history/failed", label: "Failed Emails" },
   { href: "/settings", label: "Settings" },
