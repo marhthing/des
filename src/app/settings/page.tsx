@@ -53,19 +53,51 @@ export default function SettingsPage() {
     );
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div className="text-red-600">{error}</div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-64">
+        <span className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mr-3"></span>
+        <span className="text-lg text-gray-500">Loading settings...</span>
+      </div>
+    );
+  if (error)
+    return (
+      <div className="flex items-center justify-center h-64">
+        <span className="text-red-600 text-lg">{error}</span>
+      </div>
+    );
   if (!settings) return null;
 
   return (
-    <div className="max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Settings</h1>
+    <div className="max-w-lg mx-auto py-8">
+      <div className="flex items-center gap-3 mb-6">
+        <svg
+          className="w-7 h-7 text-accent"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+        <h1 className="text-2xl font-extrabold text-primary">Settings</h1>
+        <span className="text-sm text-gray-400 font-medium">
+          System configuration
+        </span>
+      </div>
       <form
         onSubmit={handleSave}
-        className="space-y-4 bg-white p-6 rounded shadow"
+        className="space-y-6 bg-white p-8 rounded-xl shadow-md border-t-4 border-accent/60"
       >
         <div>
-          <label className="block font-medium mb-1" htmlFor="sender-email">
+          <label
+            className="block font-semibold mb-2 text-secondary"
+            htmlFor="sender-email"
+          >
             Sender Email
           </label>
           <input
@@ -73,13 +105,15 @@ export default function SettingsPage() {
             type="email"
             value={settings.sender_email}
             readOnly
-            className="w-full border rounded p-2 bg-gray-100"
+            className="w-full border border-gray-300 rounded-lg p-3 bg-gray-100"
             title="Sender email address"
             placeholder="Sender email"
           />
         </div>
         <div>
-          <label className="block font-medium mb-1">Daily Email Limit</label>
+          <label className="block font-semibold mb-2 text-secondary">
+            Daily Email Limit
+          </label>
           <input
             type="number"
             value={settings.daily_email_limit}
@@ -89,11 +123,13 @@ export default function SettingsPage() {
                 s ? { ...s, daily_email_limit: +e.target.value } : s
               )
             }
-            className="w-full border rounded p-2"
+            className="w-full border border-gray-300 rounded-lg p-3"
+            title="Daily email limit"
+            placeholder="Daily email limit"
           />
         </div>
         <div>
-          <label className="block font-medium mb-1">
+          <label className="block font-semibold mb-2 text-secondary">
             Email Interval (minutes)
           </label>
           <input
@@ -105,36 +141,59 @@ export default function SettingsPage() {
                 s ? { ...s, email_interval_minutes: +e.target.value } : s
               )
             }
-            className="w-full border rounded p-2"
+            className="w-full border border-gray-300 rounded-lg p-3"
+            title="Email interval in minutes"
+            placeholder="Email interval in minutes"
           />
         </div>
         <button
           type="submit"
-          className="bg-primary text-white px-4 py-2 rounded hover:bg-secondary"
+          className="bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:bg-secondary transition disabled:opacity-50 flex items-center gap-2"
         >
-          Save
+          Save Settings
         </button>
-        {success && <div className="text-green-600 mt-2">{success}</div>}
-        {error && <div className="text-red-600 mt-2">{error}</div>}
       </form>
+      {success && (
+        <div className="text-green-700 mt-4 font-medium bg-green-50 border border-green-200 rounded p-3">
+          {success}
+        </div>
+      )}
+      {error && (
+        <div className="text-red-600 mt-4 font-medium bg-red-50 border border-red-200 rounded p-3">
+          {error}
+        </div>
+      )}
       <div className="mt-8">
-        <label className="block font-medium mb-1">Send Test Email</label>
+        <h2 className="font-semibold mb-2 text-lg text-primary">
+          Send Test Email
+        </h2>
         <div className="flex gap-2">
           <input
             type="email"
             value={testEmail}
             onChange={(e) => setTestEmail(e.target.value)}
-            placeholder="Recipient email"
-            className="border rounded p-2 flex-1"
+            className="border border-gray-300 rounded-lg p-3 flex-1"
+            placeholder="Recipient email address"
           />
           <button
+            type="button"
             onClick={handleTestEmail}
-            className="bg-primary text-white px-4 py-2 rounded hover:bg-secondary"
+            className="bg-accent text-white px-4 py-2 rounded-lg font-semibold hover:bg-primary transition"
           >
-            Send
+            Send Test
           </button>
         </div>
-        {testResult && <div className="mt-2 text-blue-600">{testResult}</div>}
+        {testResult && (
+          <div
+            className={`mt-2 font-medium rounded p-2 ${
+              testResult.includes("sent")
+                ? "text-green-700 bg-green-50 border border-green-200"
+                : "text-red-600 bg-red-50 border border-red-200"
+            }`}
+          >
+            {testResult}
+          </div>
+        )}
       </div>
     </div>
   );

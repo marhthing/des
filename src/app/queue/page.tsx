@@ -51,106 +51,135 @@ export default function QueuePage() {
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Email Queue</h1>
-      <div className="flex gap-4 mb-4">
-        <label htmlFor="status-filter" className="sr-only">
-          Status
-        </label>
+    <div className="max-w-5xl mx-auto py-8">
+      <div className="flex items-center gap-3 mb-6">
+        <svg
+          className="w-7 h-7 text-accent"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M16 12v4m0 0v4m0-4h4m-4 0H8m8-8a4 4 0 11-8 0 4 4 0 018 0z"
+          />
+        </svg>
+        <h1 className="text-2xl font-extrabold text-primary">Email Queue</h1>
+        <span className="text-sm text-gray-400 font-medium">
+          Pending and scheduled emails
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-4 mb-4">
+        {" "}
         <select
           id="status-filter"
-          title="Status"
-          className="border p-2"
+          title="Status filter"
           value={filter.status}
-          onChange={(e) => setFilter((f) => ({ ...f, status: e.target.value }))}
+          onChange={(e) => setFilter({ ...filter, status: e.target.value })}
+          className="border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-accent focus:outline-none text-sm"
         >
           <option value="">All Statuses</option>
           <option value="pending">Pending</option>
-          <option value="processing">Processing</option>
           <option value="sent">Sent</option>
           <option value="failed">Failed</option>
-        </select>
-        <label htmlFor="type-filter" className="sr-only">
-          Email Type
-        </label>
+          <option value="cancelled">Cancelled</option>
+        </select>{" "}
         <select
           id="type-filter"
-          title="Email Type"
-          className="border p-2"
+          title="Type filter"
           value={filter.email_type}
-          onChange={(e) =>
-            setFilter((f) => ({ ...f, email_type: e.target.value }))
-          }
+          onChange={(e) => setFilter({ ...filter, email_type: e.target.value })}
+          className="border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-accent focus:outline-none text-sm"
         >
           <option value="">All Types</option>
-          <option value="pdf">PDF</option>
+          <option value="result">Result</option>
           <option value="birthday">Birthday</option>
         </select>
         <input
-          className="border p-2"
+          type="text"
           placeholder="Matric Number"
           value={filter.matric_number}
           onChange={(e) =>
-            setFilter((f) => ({ ...f, matric_number: e.target.value }))
+            setFilter({ ...filter, matric_number: e.target.value })
           }
+          className="border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-accent focus:outline-none text-sm"
         />
       </div>
-      {loading && <div>Loading...</div>}
-      {error && <div className="text-red-600">{error}</div>}
-      {!loading && !error && (
-        <table className="w-full text-sm border">
-          <thead>
-            <tr className="bg-bg">
-              <th className="p-2 border">Student Name</th>
-              <th className="p-2 border">Matric Number</th>
-              <th className="p-2 border">Recipient Email</th>
-              <th className="p-2 border">Email Type</th>
-              <th className="p-2 border">Status</th>
-              <th className="p-2 border">Created At</th>
-              <th className="p-2 border">Sent At</th>
-              <th className="p-2 border">Error</th>
-              <th className="p-2 border">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {queue.map((q) => (
-              <tr key={q.id} className="text-center">
-                <td className="border p-2">{q.Student?.student_name || "-"}</td>
-                <td className="border p-2">{q.matric_number}</td>
-                <td className="border p-2">{q.recipient_email}</td>
-                <td className="border p-2">{q.email_type}</td>
-                <td className="border p-2">{q.status}</td>
-                <td className="border p-2">
-                  {new Date(q.created_at).toLocaleString()}
-                </td>
-                <td className="border p-2">
-                  {q.sent_at ? new Date(q.sent_at).toLocaleString() : "-"}
-                </td>
-                <td className="border p-2 text-red-600">
-                  {q.error_message || "-"}
-                </td>
-                <td className="border p-2">
-                  {q.status === "failed" && (
-                    <button
-                      className="text-blue-600 underline"
-                      onClick={() => handleRetry(q.id)}
-                    >
-                      Retry
-                    </button>
-                  )}
-                  {q.status === "pending" && (
-                    <button
-                      className="text-red-600 underline ml-2"
-                      onClick={() => handleCancel(q.id)}
-                    >
-                      Cancel
-                    </button>
-                  )}
-                </td>
+      {loading && (
+        <div className="flex items-center justify-center h-40">
+          <span className="animate-spin rounded-full h-7 w-7 border-t-2 border-b-2 border-primary mr-3"></span>
+          <span className="text-lg text-gray-500">Loading queue...</span>
+        </div>
+      )}
+      {error && (
+        <div className="text-red-600 mt-4 font-medium bg-red-50 border border-red-200 rounded p-3">
+          {error}
+        </div>
+      )}
+      {!loading && !error && queue.length === 0 && (
+        <div className="text-center text-gray-400 py-12">
+          No emails in the queue.
+        </div>
+      )}
+      {!loading && !error && queue.length > 0 && (
+        <div className="overflow-x-auto rounded-lg shadow">
+          <table className="w-full text-sm border bg-white">
+            <thead className="bg-bg sticky top-0 z-10">
+              <tr>
+                <th className="p-2 border">Student Name</th>
+                <th className="p-2 border">Matric Number</th>
+                <th className="p-2 border">Recipient Email</th>
+                <th className="p-2 border">Type</th>
+                <th className="p-2 border">Status</th>
+                <th className="p-2 border">Created</th>
+                <th className="p-2 border">Sent</th>
+                <th className="p-2 border">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {queue.map((q) => (
+                <tr
+                  key={q.id}
+                  className="text-center even:bg-gray-50 hover:bg-accent/10 transition"
+                >
+                  <td className="border p-2 font-medium text-secondary">
+                    {q.Student?.student_name || "-"}
+                  </td>
+                  <td className="border p-2">{q.matric_number}</td>
+                  <td className="border p-2">{q.recipient_email}</td>
+                  <td className="border p-2">{q.email_type}</td>
+                  <td className="border p-2">{q.status}</td>
+                  <td className="border p-2">
+                    {new Date(q.created_at).toLocaleString()}
+                  </td>
+                  <td className="border p-2">
+                    {q.sent_at ? new Date(q.sent_at).toLocaleString() : "-"}
+                  </td>
+                  <td className="border p-2 flex gap-2 justify-center">
+                    {q.status === "failed" && (
+                      <button
+                        onClick={() => handleRetry(q.id)}
+                        className="bg-accent text-white px-3 py-1 rounded hover:bg-primary transition text-xs font-semibold"
+                      >
+                        Retry
+                      </button>
+                    )}
+                    {q.status === "pending" && (
+                      <button
+                        onClick={() => handleCancel(q.id)}
+                        className="bg-error text-white px-3 py-1 rounded hover:bg-secondary transition text-xs font-semibold"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
