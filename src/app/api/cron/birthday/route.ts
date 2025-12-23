@@ -1,5 +1,10 @@
-import prisma from '../../../../lib/db';
+import { createClient } from '@supabase/supabase-js';
 import { logEvent, logError } from '../../../../lib/logging';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
 
 // API route: POST /api/cron/birthday
 export async function POST(req: Request) {
@@ -12,39 +17,38 @@ export async function POST(req: Request) {
     const today = new Date();
     const month = today.getMonth() + 1;
     const day = today.getDate();
-    // Find students whose birthday is today
-    const students = await prisma.student.findMany({
-      where: {
-        date_of_birth: {
-          gte: new Date(`${today.getFullYear()}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T00:00:00.000Z`),
-          lt: new Date(`${today.getFullYear()}-${month.toString().padStart(2, '0')}-${(day+1).toString().padStart(2, '0')}T00:00:00.000Z`),
-        },
-      },
-    });
+    const year = today.getFullYear();
+    // Find students whose birthday is today (ignoring year)
+    const { data: students, error: studentError } = await supabase
+      .from('Student')
+      .select('*')
+      .filter('date_of_birth', 'gte', `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T00:00:00.000Z`)
+      .filter('date_of_birth', 'lt', `${year}-${month.toString().padStart(2, '0')}-${(day+1).toString().padStart(2, '0')}T00:00:00.000Z`);
+    if (studentError) throw new Error(studentError.message);
     let count = 0;
-    for (const student of students) {
+    for (const student of students ?? []) {
       // Prevent duplicate birthday emails per student per day
-      const alreadyQueued = await prisma.emailQueue.findFirst({
-        where: {
-          student_id: student.id,
-          email_type: 'birthday',
-          created_at: {
-            gte: today,
-          },
-        },
-      });
-      if (!alreadyQueued) {
+      const { data: alreadyQueued, error: queueError } = await supabase
+        .from('EmailQueue')
+        .select('id')
+        .eq('student_id', student.id)
+        .eq('email_type', 'birthday')
+        .gte('created_at', today.toISOString())
+        .limit(1);
+      if (queueError) throw new Error(queueError.message);
+      if (!alreadyQueued || alreadyQueued.length === 0) {
         const emails = [student.parent_email_1, student.parent_email_2].filter(Boolean);
         for (const email of emails) {
-          await prisma.emailQueue.create({
-            data: {
+          const { error: insertError } = await supabase
+            .from('EmailQueue')
+            .insert({
               student_id: student.id,
               matric_number: student.matric_number,
-              recipient_email: email!,
+              recipient_email: email,
               email_type: 'birthday',
               status: 'pending',
-            },
-          });
+            });
+          if (insertError) throw new Error(insertError.message);
           count++;
         }
       }
