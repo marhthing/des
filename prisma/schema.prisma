@@ -1,0 +1,64 @@
+// SQLite schema for local development (Prisma)
+// This matches the Supabase schema for production
+// Save as schema.prisma if using Prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Student {
+  id             String   @id @default(uuid())
+  matric_number  String   @unique
+  student_name   String
+  date_of_birth  DateTime
+  parent_email_1 String?
+  parent_email_2 String?
+  created_at     DateTime @default(now())
+  UploadedFile   UploadedFile[]
+  EmailQueue     EmailQueue[]
+}
+
+model UploadedFile {
+  id                  String   @id @default(uuid())
+  original_file_name  String
+  matric_number_raw   String
+  matric_number_parsed String
+  student_id          String?
+  status              String
+  storage_path        String
+  uploaded_at         DateTime @default(now())
+  Student             Student? @relation(fields: [student_id], references: [id])
+}
+
+model EmailQueue {
+  id             String   @id @default(uuid())
+  student_id     String
+  matric_number  String
+  recipient_email String
+  email_type     String
+  status         String
+  error_message  String?
+  created_at     DateTime @default(now())
+  sent_at        DateTime?
+  Student        Student  @relation(fields: [student_id], references: [id])
+}
+
+model SystemSettings {
+  id                   Int      @id @default(1)
+  daily_email_limit    Int
+  sender_email         String
+  email_interval_minutes Int
+  updated_at           DateTime @updatedAt
+}
+
+model SystemLog {
+  id        String   @id @default(uuid())
+  type      String
+  message   String
+  created_at DateTime @default(now())
+}
