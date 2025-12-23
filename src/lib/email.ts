@@ -23,7 +23,7 @@ export async function sendEmail({
   // or use an Edge Function or external integration for custom emails.
   // Here, we use the 'inviteUserByEmail' as a placeholder for demo purposes.
   const { data, error } = await supabase.auth.admin.inviteUserByEmail(to, {
-    emailRedirectTo: process.env.EMAIL_REDIRECT_URL || undefined,
+    redirectTo: process.env.EMAIL_REDIRECT_URL || undefined,
   });
   if (error) throw error;
   return data;
