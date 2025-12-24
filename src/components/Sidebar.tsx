@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/students", label: "Students" }, // Added students page
-  { href: "/upload", label: "Upload PDFs" },
+  { href: "/students", label: "Students" },
+  { href: "/upload/student-by-upload", label: "Student Uploads" }, // New upload workflow
+  { href: "/upload", label: "Upload PDFs (Legacy)" },
   { href: "/files", label: "Uploaded Files" },
   { href: "/queue", label: "Email Queue" },
-  { href: "/birthdays", label: "Student Birthdays" }, // Added birthdays page
+  { href: "/manual-email", label: "Send Manual Email" },
+  { href: "/birthdays", label: "Student Birthdays" },
   { href: "/history/sent", label: "Sent History" },
   { href: "/history/failed", label: "Failed Emails" },
   { href: "/settings", label: "Settings" },
